@@ -9,12 +9,10 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserMapper userMapper;
-    private final UserDto UserDto;
 
     // 3. 생성자를 통해 Mapper를 주입받음 (DB 연결 통로 확보)
-    public UserController(UserMapper userMapper, UserDto userDto) {
+    public UserController(UserMapper userMapper) {
         this.userMapper = userMapper;
-        this.UserDto = userDto;
     }
 
     @PostMapping("/login") // 보안을 위해 POST 방식을 사용
