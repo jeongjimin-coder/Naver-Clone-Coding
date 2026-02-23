@@ -52,6 +52,7 @@ import axios from 'axios'
 const user = ref(null)     // 로그인 성공 시 유저 정보 저장
 const userId = ref('')     // 아이디 입력값 바인딩
 const userPw = ref('')     // 비밀번호 입력값 바인딩
+const user = ref(null)
 
 /* 3. 로그인 로직 */
 const handleLogin = async () => {
@@ -83,6 +84,9 @@ const handleLogout = () => {
   userId.value = '';
   userPw.value = '';
 };
+
+/* 세션 */
+
 </script>
 
 
