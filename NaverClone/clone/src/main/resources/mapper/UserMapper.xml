@@ -14,4 +14,15 @@
         WHERE USER_ID = #{userId}
         AND USER_PW = #{userPw}
     </select>
+
+    <insert id="insertUser" parameterType="com.naver.clone.dto.UserDto">
+        INSERT INTO USERS (USER_ID, USER_PW, USER_NAME, EMAIL)
+        VALUES (#{userId}, #{userPw}, #{userName}, #{email})
+    </insert>
+
+    <select id="findById" parameterType="string" resultType="com.naver.clone.dto.UserDto">
+        SELECT USER_ID, USER_PW, USER_NAME, EMAIL
+        FROM USERS
+        WHERE USER_ID = #{userId}
+    </select>
 </mapper>
