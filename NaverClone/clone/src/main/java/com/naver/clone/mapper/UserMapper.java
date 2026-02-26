@@ -5,10 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserMapper {
-    UserDto getUserById(String id);
-    UserDto loginCheck(UserDto loginRequest);
 
-    int insertUser(UserDto userDto);
     UserDto findById(String userId);
 
     int insertAccount(UserDto userDto);

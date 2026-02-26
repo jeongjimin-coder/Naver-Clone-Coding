@@ -31,15 +31,22 @@
 
         <section class="news-stand">
           <div class="news-tab">
-            <span class="active">뉴스스탠드</span>
-            <span>언론사편집</span>
-            <span>엔터</span>
-            <span>스포츠</span>
+          <span v-for="tab in ['뉴스스탠드', '언론사편집', '엔터', '쇼핑투데이', '스포츠', '경제']"
+            :key="tab"
+            :class="{ active: selectedCategory === tab }"
+            @click="selectedCategory = tab"
+          >
+          {{ tab }}
+           </span>
           </div>
+
           <div class="news-grid">
-            <div v-for="n in 24" :key="n" class="news-item">
-              <span class="press-name">언론사 {{ n }}</span>
+            <div v-for="(news, index) in newsList" :key="index" class="news-item" @click="goToSearch(news.TITLE)">
+              <div class="press-logo-box">
+                <span class="press-name">{{ news.PRESS_NAME }}</span>
+                <p class="news-title-hover">{{ news.TITLE }}</p>
             </div>
+          </div>
           </div>
         </section>
       </div>
@@ -82,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 const isLoggedIn = ref(false);
@@ -90,6 +97,8 @@ const loginUser = ref(null);
 const loginId = ref('');
 const loginPw = ref('');
 const searchQuery = ref('');
+const newsList = ref([]);
+const selectedCategory = ref('뉴스스탠드');
 
 // 세션 체크 (새로고침 유지)
 onMounted(async () => {
@@ -100,6 +109,22 @@ onMounted(async () => {
       loginUser.value = res.data;
     }
   } catch (e) { console.error("세션 없음"); }
+  try {
+    const res = await axios.get('/api/news/list');
+    newsList.value = res.data;
+    console.log("뉴스 데이터: ", res.data);
+    } catch (e) { console.error("뉴스 로딩 실패"); }
+});
+
+const goToSearch = (title) => {
+  if (!title) return;
+  const searchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(title)}`;
+  window.open(searchUrl, '_blank'); // 새 탭으로 열기
+};
+
+const filterNewsList = computed(() => {
+  if (selectedCategory.value === '뉴스스탠드') return newsList.value;
+  return newsList.value.filter(news => news.CATEGORY === selectedCategory.value);
 });
 
 const handleLogin = async () => {
@@ -148,8 +173,13 @@ const handleLogout = async () => {
 .news-stand { background: #fff; border: 1px solid #dadada; border-radius: 8px; overflow: hidden; }
 .news-tab { padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 20px; font-size: 14px; font-weight: bold; color: #666; }
 .news-tab .active { color: #000; border-bottom: 2px solid #000; }
-.news-grid { display: grid; grid-template-columns: repeat(6, 1fr); }
-.news-item { height: 65px; border: 0.5px solid #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999; }
+.news-grid { display: grid; grid-template-columns: repeat(3, 1fr);  border-top: 1px solid #f0f0f0;}
+.news-item { height: 80px; padding: 15px; border-right: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999; transition: background-color 0.2s; cursor: pointer; transition: all 0.2 ease; }
+.news-item:hover { background-color: #f8f9fa; box-shadow: inset 0 0 0 1px #03c75a; }
+.press-name { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
+.news-title-hover { font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-anchor: middle; text-overflow: ellipsis; }
+.news-title-hover:hover { text-decoration: underline; }
+
 
 /* 로그인 박스 */
 .login-card { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; margin-bottom: 15px; }
