@@ -1,0 +1,14 @@
+계층별 역할 정의
+1. Presentation Layer (UserController):
+- 사용자의 요청을 수신하고 HTTP 응답을 반환합니다.
+- HttpSession을 통해 사용자의 로그인 상태(세션)를 관리합니다.
+
+2. Business Layer (UserService):
+- @Transactional을 사용하여 ACCOUNT와 PROFILE 테이블 입력의 원자성을 보장합니다.
+- PasswordEncoder를 사용해 비밀번호 암호화 로직을 수행합니다.
+- Persistence Layer (UserMapper):
+- MyBatis를 통해 실제 SQL(Join, Insert)을 실행합니다.
+- DB 테이블 구조와 Java 객체를 매핑합니다.
+
+3. Domain Model (UserDto):
+- 계층 간 데이터 이동을 위한 공통 바구니 역할을 합니다.

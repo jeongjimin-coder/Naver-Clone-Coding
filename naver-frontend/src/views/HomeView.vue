@@ -1,296 +1,174 @@
 <template>
-  <div class="naver-clone">
-    <header class="header">
+  <div class="naver-container">
+    <header class="naver-header">
       <div class="header-inner">
-        <h1 class="logo" @click="$router.push('/')">NAVER</h1>
-
-        <div class="search-area">
-          <input type="text" class="search-input" placeholder="검색어를 입력해 주세요." />
-          <button class="search-btn">
-            <span class="search-icon">🔍</span>
-          </button>
+        <div class="search-section">
+          <h1 class="main-logo" @click="$router.push('/')">NAVER</h1>
+          <div class="search-bar">
+            <input type="text" v-model="searchQuery" placeholder="검색어를 입력해 주세요.">
+            <button class="search-btn">🔍</button>
+          </div>
         </div>
+
+        <nav class="service-nav">
+          <div class="menu-item"><div class="icon-circle mail"></div><span>메일</span></div>
+          <div class="menu-item"><div class="icon-circle cafe"></div><span>카페</span></div>
+          <div class="menu-item"><div class="icon-circle blog"></div><span>블로그</span></div>
+          <div class="menu-item"><div class="icon-circle store"></div><span>쇼핑</span></div>
+          <div class="menu-item"><div class="icon-circle news"></div><span>뉴스</span></div>
+          <div class="menu-item"><div class="icon-circle stock"></div><span>증권</span></div>
+          <div class="menu-item"><div class="icon-circle map"></div><span>지도</span></div>
+          <div class="menu-item"><div class="icon-circle more"></div><span>더보기</span></div>
+        </nav>
       </div>
     </header>
 
-    <nav class="gnb">
-      <ul class="menu-list">
-        <li>메일</li><li>카페</li><li>블로그</li><li>쇼핑</li><li>뉴스</li>
-      </ul>
-    </nav>
+    <main class="naver-content">
+      <div class="left-side">
+        <div class="banner-ad">
+          <p>대웅제약 에너시슬 프리미엄 | 공식몰 초특가 ~68% ></p>
+        </div>
 
-    <main class="content"> <section class="left-section">
-        <div class="news-stand">뉴스스탠드 영역 (준비 중)</div>
-      </section>
-
-      <aside class="right-section">
-        <div v-if="isJoinMode" class="login-box join-box">
-          <div class="login-inputs">
-            <input v-model="joinData.userId" type="text" placeholder="아이디" class="input-field" />
-            <input v-model="joinData.userPw" type="password" placeholder="비밀번호" class="input-field" />
-            <input v-model="joinData.userName" type="text" placeholder="이름" class="input-field" />
-            <input v-model="joinData.email" type="text" placeholder="이메일" class="input-field" />
+        <section class="news-stand">
+          <div class="news-tab">
+            <span class="active">뉴스스탠드</span>
+            <span>언론사편집</span>
+            <span>엔터</span>
+            <span>스포츠</span>
           </div>
-          <button @click="handleJoin" class="login-btn">가입하기</button>
-          <div class="login-sub">
-            <span @click="isJoinMode = false" style="cursor:pointer">이미 계정이 있나요? 로그인</span>
+          <div class="news-grid">
+            <div v-for="n in 24" :key="n" class="news-item">
+              <span class="press-name">언론사 {{ n }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="right-side">
+        <div class="login-card">
+          <div v-if="!isLoggedIn" class="login-before">
+            <p class="login-guide">네이버를 더 안전하고 편리하게 이용하세요</p>
+            <div class="login-inputs">
+              <input v-model="loginId" type="text" placeholder="아이디" class="input-id">
+              <input v-model="loginPw" type="password" placeholder="비밀번호" class="input-pw">
+            </div>
+            <button @click="handleLogin" class="btn-naver-login">NAVER 로그인</button>
+            <div class="login-footer">
+              <span>아이디 찾기</span> | <span>비밀번호 찾기</span> | <span @click="$router.push('/join')" class="join-link">회원가입</span>
+            </div>
+          </div>
+
+          <div v-else class="login-after">
+            <div class="profile-area">
+              <div class="avatar-circle">👤</div>
+              <div class="profile-info">
+                <p class="user-name"><strong>{{ loginUser.userName }}</strong>님</p>
+                <p class="user-email">{{ loginUser.email }}</p>
+              </div>
+            </div>
+            <button @click="handleLogout" class="btn-logout">로그아웃</button>
           </div>
         </div>
 
-        <div v-else-if="!user" class="login-box before-login">
-          <div class="login-inputs">
-            <input v-model="userId" type="text" placeholder="아이디" class="input-field" />
-            <input v-model="userPw" type="password" placeholder="비밀번호" class="input-field" />
+        <div class="side-ad">
+          <div class="ad-content">
+            <p class="ad-title">추운 날씨에 혼자 남겨졌던 지후</p>
+            <button class="btn-more">더 알아보기 ></button>
           </div>
-          <button @click="handleLogin" class="login-btn">로그인</button>
-          <div class="login-sub">
-            <span>아이디 찾기</span> | <span>비밀번호 찾기</span> |
-            <span @click="isJoinMode = true" style="cursor:pointer">회원가입</span>
-          </div>
-        </div>
-
-        <div v-else class="login-box after-login">
-          <div class="user-info">
-            <strong>{{ user.userName }}</strong>님 환영합니다!
-            <p>{{ user.email }}</p>
-          </div>
-          <button @click="handleLogout" class="logout-btn">로그아웃</button>
         </div>
       </aside>
-    </main> </div> </template>
+    </main>
+  </div>
+</template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+const isLoggedIn = ref(false);
+const loginUser = ref(null);
+const loginId = ref('');
+const loginPw = ref('');
+const searchQuery = ref('');
 
-const user = ref(null)     // 로그인 성공 시 유저 정보 저장
-const userId = ref('')     // 아이디 입력값 바인딩
-const userPw = ref('')     // 비밀번호 입력값 바인딩
-const isJoinMode = ref(false); // 가입 화면인지 로그인 화면인지 상태 관리
-
-/* 세션 */
-
-onMounted(async () => {           // 페이지가 로드되자마자 실행
+// 세션 체크 (새로고침 유지)
+onMounted(async () => {
   try {
-    const response = await axios.get('/api/user/check-session');
-    if (response.data) {
-      user.value = response.data; // 서버에 세션이 있다면 정보를 받아와서 로그인 상태 유지
+    const res = await axios.get('/api/user/session');
+    if (res.data) {
+      isLoggedIn.value = true;
+      loginUser.value = res.data;
     }
-  } catch (error) {
-    console.error('세션 확인 실패:', error);
-  }
-  })
-;
-
-/* 3. 로그인 로직 */
-const handleLogin = async () => {
-  if (!userId.value || !userPw.value) {
-    alert('아이디와 비밀번호를 입력해주세요.');
-    return;
-  }
-
-  try {
-    const response = await axios.post('/api/user/login', {
-      userId: userId.value,
-      userPw: userPw.value
-    });
-
-    if (response.data) {
-      user.value = response.data;
-      alert(`${user.value.userName}님 환영합니다!`);
-    } else {
-      alert('아이디 또는 비밀번호가 틀립니다.');
-    }
-  } catch (error) {
-    console.error('로그인 에러:', error);
-  }
-}
-
-/* 4. 로그아웃 로직 */
-const handleLogout = async () => {
-  try {
-  await axios.post('/api/user/logout');
-  user.value = null;
-  userId.value = '';
-  userPw.value = '';
-
-  alert('로그아웃 되었습니다.');
-
-  } catch (error) {
-    console.error('로그아웃 중 오류 발생:', error);
-    alert('로그아웃 실패하였습니다.');
-  }
-};
-
-/* 5. 회원가입 로직 */
-const joinData = ref({
-  userId: '',
-  userPw: '',
-  userName: '',
-  email: ''
+  } catch (e) { console.error("세션 없음"); }
 });
 
-const handleJoin = async () => {
-  if (!joinData.value.userId || !joinData.value.userPw || !joinData.value.userName) {
-    alert('필수 정보를 모두 입력해주세요.');
-    return;
-  }
+const handleLogin = async () => {
+  if (!loginId.value || !loginPw.value) { alert("입력해주세요!"); return; }
   try {
-    const response = await axios.post('/api/user/join', joinData.value);
-    if (response.data === 'success') {
-      alert('회원가입이 완료되었습니다! 이제 로그인해주세요.');
-      isJoinMode.value = false; // 가입 성공 후 로그인 화면으로 복귀
-    } else {
-      alert('회원가입에 실패했습니다.');
-    }
-  } catch (error) {
-    console.error('회원가입 에러:', error);
-  }
+    const res = await axios.post('/api/user/login', { userId: loginId.value, userPw: loginPw.value });
+    if (res.data) {
+      isLoggedIn.value = true;
+      loginUser.value = res.data;
+    } else { alert("정보가 틀립니다."); }
+  } catch (e) { console.error("로그인 실패"); }
 };
 
+const handleLogout = async () => {
+  await axios.post('/api/user/logout');
+  isLoggedIn.value = false;
+  loginUser.value = null;
+  loginId.value = '';
+  loginPw.value = '';
+};
 </script>
 
-
 <style scoped>
-/* 1. 전체 컨테이너: 배경색과 최소 높이 설정 */
-.naver-clone {
-  background-color: var(--bg-body);
-  min-height: 100vh;
-}
+.naver-container { background-color: #f5f6f7; min-height: 100vh; color: #202020; }
+.header-inner { background: #fff; padding: 40px 0 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid #ebebeb; }
 
-/* 2. 헤더 영역: 흰색 배경에 중앙 정렬 */
-.header {
-  background-color: #fff;
-  border-bottom: 1px solid var(--border-line);
-}
+/* 검색창 디자인 (올려주신 이미지의 둥근 형태) */
+.search-section { display: flex; align-items: center; width: 1130px; gap: 25px; margin-bottom: 30px; }
+.main-logo { color: #03c75a; font-size: 38px; font-weight: 900; cursor: pointer; letter-spacing: -1px; }
+.search-bar { flex: 1; max-width: 600px; height: 58px; border: 2px solid #03c75a; border-radius: 30px; display: flex; align-items: center; padding: 0 20px; }
+.search-bar input { border: none; outline: none; width: 100%; font-size: 19px; font-weight: bold; }
+.search-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #03c75a; }
 
-.logo {
-  color: #03c75a; /* 네이버 공식 그린 컬러 */
-  font-size: 36px;
-  font-weight: 900;
-  cursor: pointer;
-  letter-spacing: -1.5px;
-  margin: 0;
-}
+/* 서비스 메뉴 아이콘 */
+.service-nav { display: flex; gap: 35px; }
+.menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.icon-circle { width: 44px; height: 44px; border-radius: 50%; background-color: #f4f7f8; }
 
-.header-inner {
-  max-width: 1130px; /* 네이버 표준 너비 */
-  margin: 0 auto;    /* 가로 가운데 정렬 */
-  display: flex;
-  align-items: center;
-  padding: 20px 0;
-  gap: 20px;
-}
+/* 메인 레이아웃 */
+.naver-content { display: flex; width: 1130px; margin: 20px auto; gap: 20px; }
+.left-side { width: 750px; }
+.right-side { width: 350px; }
 
-/* 검색창 영역: 중앙 배치 및 스타일링 */
-.search-area {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  max-width: 580px; /* 검색창 너비 확장 */
-  height: 52px;
-  border: 2px solid #03c75a; /* 테두리를 시그니처 컬러로 */
-  border-radius: 2px;
-  background-color: #fff;
-  margin-left: 20px;
-}
+/* 배너 및 뉴스스탠드 */
+.banner-ad { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+.news-stand { background: #fff; border: 1px solid #dadada; border-radius: 8px; overflow: hidden; }
+.news-tab { padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 20px; font-size: 14px; font-weight: bold; color: #666; }
+.news-tab .active { color: #000; border-bottom: 2px solid #000; }
+.news-grid { display: grid; grid-template-columns: repeat(6, 1fr); }
+.news-item { height: 65px; border: 0.5px solid #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999; }
 
-.search-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0 20px;
-  font-size: 18px;
-  font-weight: bold;
-  background: transparent;
-}
+/* 로그인 박스 */
+.login-card { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; margin-bottom: 15px; }
+.login-guide { font-size: 13px; color: #666; margin-bottom: 15px; text-align: center; }
+.login-inputs { margin-bottom: 10px; }
+.login-inputs input { width: 100%; height: 35px; border: 1px solid #ddd; margin-bottom: 5px; padding: 5px; box-sizing: border-box; }
+.btn-naver-login { width: 100%; height: 50px; background: #03c75a; color: #fff; border: none; border-radius: 4px; font-weight: bold; font-size: 16px; cursor: pointer; }
+.login-footer { margin-top: 15px; font-size: 12px; color: #888; text-align: center; }
+.join-link { color: #03c75a; font-weight: bold; cursor: pointer; }
 
-.search-btn {
-  width: 56px;
-  height: 100%;
-  background-color: #03c75a; /* 버튼 배경도 그린 */
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* 로그인 후 프로필 */
+.profile-area { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.avatar-circle { width: 50px; height: 50px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.user-name { margin: 0; font-size: 15px; }
+.user-email { margin: 0; font-size: 12px; color: #888; }
+.btn-logout { width: 100%; padding: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; border-radius: 4px; }
 
-.search-icon {
-  font-size: 24px;
-  color: #fff; /* 돋보기 아이콘은 흰색으로 */
-}
-
-/* 3. 메뉴바(GNB) 영역 */
-.gnb {
-  background-color: #fff;
-  border-bottom: 1px solid var(--border-line);
-}
-
-.menu-list {
-  max-width: 1130px;
-  margin: 0 auto;
-  display: flex;
-  list-style: none;
-  gap: 25px;
-  padding: 12px 0;
-  font-weight: bold;
-}
-
-/* 4. 메인 콘텐츠 영역: 왼쪽(뉴스) + 오른쪽(로그인) */
-.content {
-  max-width: 1130px;
-  margin: 20px auto; /* 위아래 20px 여백, 좌우 가운데 */
-  display: flex;
-  gap: 20px;
-  align-items: flex-start; /* 자식 요소 높이가 제각각이어도 위로 정렬 */
-}
-
-/* 왼쪽 섹션 (뉴스스탠드 등) */
-.left-section {
-  flex: 1; /* 남은 공간 모두 차지 */
-  background-color: #fff;
-  border: 1px solid var(--border-line);
-  min-height: 400px;
-  padding: 20px;
-}
-
-/* 오른쪽 섹션 (로그인 박스 등) */
-.right-section {
-  width: 350px; /* 네이버 로그인 박스 표준 너비 */
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-/* 로그인 박스 디자인 */
-.login-box {
-  background-color: #fff;
-  border: 1px solid var(--border-line);
-  padding: 25px;
-  text-align: center;
-}
-
-.input-field {
-  width: 100%;
-  height: 48px;
-  padding: 0 12px;
-  margin-bottom: 7px;
-  border: 1px solid #dadada;
-  box-sizing: border-box; /* 패딩 포함 너비 계산 */
-  outline: none;
-}
-
-.login-btn {
-  width: 100%;
-  height: 48px;
-  background-color: var(--naver-green);
-  color: #fff;
-  border: none;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  margin: 10px 0;
-}
+/* 사이드 캠페인 */
+.side-ad { background: #fff; border: 1px solid #dadada; border-radius: 8px; height: 200px; padding: 20px; }
+.ad-title { font-weight: bold; margin-bottom: 10px; }
+.btn-more { border: none; background: none; color: #888; cursor: pointer; font-size: 12px; }
 </style>

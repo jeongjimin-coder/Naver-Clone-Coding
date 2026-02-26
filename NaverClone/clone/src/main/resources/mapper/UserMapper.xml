@@ -2,27 +2,30 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.naver.clone.mapper.UserMapper">
-    <select id="getUserById" resultType="com.naver.clone.dto.UserDto">
-        SELECT USER_ID, USER_NAME, EMAIL
-        FROM USERS
-        WHERE USER_ID = #{id}
-    </select>
 
-    <select id="loginCheck" parameterType="com.naver.clone.dto.UserDto" resultType="com.naver.clone.dto.UserDto">
-        SELECT USER_ID, USER_NAME, EMAIL, USER_PW
-        FROM USERS
-        WHERE USER_ID = #{userId}
-        AND USER_PW = #{userPw}
-    </select>
+    <insert id="insertAccount" parameterType="com.naver.clone.dto.UserDto">
+        INSERT INTO USER_ACCOUNT (USER_ID, USER_PW)
+        VALUES (#{userId}, #{userPw})
+    </insert>
 
-    <insert id="insertUser" parameterType="com.naver.clone.dto.UserDto">
-        INSERT INTO USERS (USER_ID, USER_PW, USER_NAME, EMAIL)
-        VALUES (#{userId}, #{userPw}, #{userName}, #{email})
+    <insert id="insertProfile" parameterType="com.naver.clone.dto.UserDto">
+        INSERT INTO USER_PROFILE (
+        USER_ID, USER_NAME, EMAIL, BIRTH, TELECOM, GENDER, IS_LOCAL, PHONE
+        ) VALUES (
+        #{userId}, #{userName}, #{email}, #{birth}, #{telecom}, #{gender}, #{isLocal}, #{phone}
+        )
     </insert>
 
     <select id="findById" parameterType="string" resultType="com.naver.clone.dto.UserDto">
-        SELECT USER_ID, USER_PW, USER_NAME, EMAIL
-        FROM USERS
-        WHERE USER_ID = #{userId}
+        SELECT
+            A.USER_ID,
+            A.USER_PW,
+            P.USER_NAME,
+            P.EMAIL,
+            P.PHONE,
+            P.GENDER
+        FROM USER_ACCOUNT A
+        JOIN USER_PROFILE P ON A.USER_ID = P.USER_ID
+        WHERE A.USER_ID = #{userId} AND A.STATUS = 'Y'
     </select>
 </mapper>

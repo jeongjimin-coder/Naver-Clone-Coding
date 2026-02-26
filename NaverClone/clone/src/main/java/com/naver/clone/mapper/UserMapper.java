@@ -10,4 +10,7 @@ public interface UserMapper {
 
     int insertUser(UserDto userDto);
     UserDto findById(String userId);
+
+    int insertAccount(UserDto userDto);
+    int insertProfile(UserDto userDto);
 }
