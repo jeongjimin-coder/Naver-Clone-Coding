@@ -1,0 +1,20 @@
+# ===== Spring Boot (Gradle) =====
+NaverClone/.gradle/
+NaverClone/build/
+NaverClone/target/
+NaverClone/*.log
+
+# ===== Vue =====
+naver-frontend/node_modules/
+naver-frontend/dist/
+naver-frontend/.env
+naver-frontend/.env.*
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
