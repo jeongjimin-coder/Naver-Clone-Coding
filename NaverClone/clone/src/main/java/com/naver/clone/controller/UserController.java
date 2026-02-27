@@ -75,6 +75,25 @@ public class UserController {
 
     }
 
+    @PostMapping("/verify-id")
+    public String verifyUserId(@RequestBody Map<String, String> request) {
+        String UserId = request.get("userId");
+        return userService.verifyId(UserId);
+    }
+
+    @PostMapping("/reset-pw")
+    public String resetPw(@RequestBody Map<String, String> request) {
+        String userId = request.get("userId");
+        String newPw = request.get("newPw");
+        return userService.updatePassword(userId, newPw);
+    }
+
+    @PostMapping("/find-id")
+    public String findUserId(@RequestBody Map<String, String> request) {
+        String userInfo = request.get("info");
+        return userService.getUserIdByInfo(userInfo);
+    }
+
     @PostMapping("/verify-send")
     public String sendVerifyCode(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String phone = request.get("phone");
@@ -116,4 +135,6 @@ public class UserController {
         // 5. 서버 번호와 사용자 입력 번호 비교
         return serverCode != null && serverCode.equals(userInputCode);
     }
+
+
 }

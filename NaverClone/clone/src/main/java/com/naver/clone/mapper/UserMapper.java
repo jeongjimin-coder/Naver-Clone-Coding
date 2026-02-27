@@ -10,4 +10,8 @@ public interface UserMapper {
 
     int insertAccount(UserDto userDto);
     int insertProfile(UserDto userDto);
+    String selectById(String info);
+    int checkUserExists(String userId);
+    int updatePassword(String userId, String newPw);
+
 }

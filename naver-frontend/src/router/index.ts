@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import JoinView from '../views/JoinView.vue'
+import FindIdView from '../views/FindIdView.vue'
+import FindPwView from '../views/FindPwView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,6 +16,16 @@ const router = createRouter({
       path: '/join',
       name: 'join',
       component: JoinView
+    },
+    {
+      path: '/find-id',
+      name: 'find-id',
+      component: FindIdView
+    },
+    {
+        path: '/find-pw',
+        name: 'find-pw',
+        component: FindPwView
     }
   ]
 })

@@ -23,7 +23,7 @@
               <ul class="search-list">
                 <li v-for="(word, idx) in recentSearches" :key="idx" @mousedown="handleRecentClick(word)">
                   <span>{{ word }}</span>
-                  <button class="btn-delete" @click.stop="deleteSearch(idx)">✕</button>
+                  <button class="btn-delete" @mousedown.stop="deleteSearch(idx)">✕</button>
                 </li>
               </ul>
             </div>
@@ -45,21 +45,12 @@
 
     <main class="naver-content">
       <div class="left-side">
-        <div class="banner-ad">
-          <p>대웅제약 에너시슬 프리미엄 | 공식몰 초특가 ~68% ></p>
-        </div>
-
+        <div class="banner-ad"><p>대웅제약 에너시슬 프리미엄 | 공식몰 초특가 ~68% ></p></div>
         <section class="news-stand">
           <div class="news-tab">
             <span v-for="tab in ['뉴스스탠드', '언론사편집', '엔터', '쇼핑투데이', '스포츠', '경제']"
-                  :key="tab"
-                  :class="{ active: selectedCategory === tab }"
-                  @click="selectedCategory = tab"
-            >
-              {{ tab }}
-            </span>
+                  :key="tab" :class="{ active: selectedCategory === tab }" @click="selectedCategory = tab">{{ tab }}</span>
           </div>
-
           <div class="news-grid">
             <div v-for="(news, index) in filterNewsList" :key="index" class="news-item" @click="goToSearch(news.TITLE)">
               <div class="press-logo-box">
@@ -81,24 +72,37 @@
             </div>
             <button @click="handleLogin" class="btn-naver-login">NAVER 로그인</button>
             <div class="login-footer">
-              <span>아이디 찾기</span> | <span>비밀번호 찾기</span> | <span @click="$router.push('/join')" class="join-link">회원가입</span>
+              <span @click="$router.push('/find-id')" class="find-link">아이디 찾기</span> |
+              <span @click="$router.push('/find-pw')" class="find-link">비밀번호 찾기</span> |
+              <span @click="$router.push('/join')" class="join-link">회원가입</span>
             </div>
           </div>
 
           <div v-else class="login-after">
-            <div class="profile-area">
-              <div class="avatar-circle">👤</div>
+            <div class="profile-top">
+              <div class="avatar-wrapper">
+                <div class="avatar-circle">👤</div>
+                <div class="icon-setting">⚙️</div>
+              </div>
               <div class="profile-info">
-                <p class="user-name"><strong>{{ loginUser.userName }}</strong>님</p>
+                <p class="user-id">
+                  <span class="user-name">{{ loginUser.userName }}</span>님
+                  <span class="badge-plus">PLUS</span>
+                </p>
                 <p class="user-email">{{ loginUser.email }}</p>
               </div>
             </div>
-            <button @click="handleLogout" class="btn-logout">로그아웃</button>
+            <div class="profile-actions">
+              <div class="action-item"><strong>15</strong><span>메일</span></div>
+              <div class="action-item"><strong>3</strong><span>쪽지</span></div>
+              <div class="action-item"><strong>99+</strong><span>알림</span></div>
+            </div>
+            <button @click="handleLogout" class="btn-logout-naver">로그아웃</button>
           </div>
         </div>
 
-        <div class="weather-box">
-          <div class="weather-inner" v-if="weatherData.icon">
+        <div class="weather-box" v-if="weatherData.icon">
+          <div class="weather-inner">
             <img :src="`https://openweathermap.org/img/wn/${weatherData.icon}@2x.png`" alt="날씨">
             <div class="weather-info">
               <span class="current-temp">{{ weatherData.temp }}°</span>
@@ -115,7 +119,6 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
-// 상태 관리 변수
 const recentSearches = ref([]);
 const isSearchHistoryOpen = ref(false);
 const searchQuery = ref('');
@@ -128,7 +131,6 @@ const selectedCategory = ref('뉴스스탠드');
 const weatherData = ref({ temp: 0, description: '', icon: '' });
 
 onMounted(async () => {
-  // 세션 및 데이터 로드
   try {
     const res = await axios.get('/api/user/session');
     if (res.data) { isLoggedIn.value = true; loginUser.value = res.data; }
@@ -145,16 +147,14 @@ onMounted(async () => {
   fetchWeather();
 });
 
-// 공통 검색 실행 로직 (중복 제거)
+// 🚀 통합 검색 로직
 const performSearch = (keyword) => {
-  if (!keyword.trim()) { alert("검색어를 입력해 주세요!"); return; }
+  if (!keyword || !keyword.trim()) { alert("검색어를 입력해 주세요!"); return; }
 
-  // 검색어 배열 가공 (중복 제거 후 맨 위로)
   const updated = [keyword, ...recentSearches.value.filter(s => s !== keyword)];
   recentSearches.value = updated.slice(0, 5);
   localStorage.setItem('naver_recent_searches', JSON.stringify(recentSearches.value));
 
-  // 상태 정리 및 이동
   searchQuery.value = keyword;
   isSearchHistoryOpen.value = false;
   window.location.href = `https://search.naver.com/search.naver?query=${encodeURIComponent(keyword)}`;
@@ -199,13 +199,16 @@ const fetchWeather = () => {
 
 <style scoped>
 .naver-container { background-color: #f5f6f7; min-height: 100vh; color: #202020; }
+.naver-header { backgroun: #fff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0,06); position: sticky; top: 0; z-index: 1000; }
+
 .header-inner { background: #fff; padding: 40px 0 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid #ebebeb; }
 
 .search-section { display: flex; align-items: center; width: 1130px; gap: 25px; margin-bottom: 30px; }
 .main-logo { color: #03c75a; font-size: 38px; font-weight: 900; cursor: pointer; letter-spacing: -1px; margin: 0; }
 
 .search-bar-container { position: relative; width: 600px; }
-.search-bar { height: 58px; border: 2px solid #03c75a; border-radius: 30px; display: flex; align-items: center; padding: 0 20px; background: #fff; }
+.search-bar { height: 58px; border: 2px solid #03c75a; border-radius: 30px; display: flex; align-items: center; padding: 0 20px; background: #fff; transition: box-shadow 0.2s; }
+.search-bar:focus-within { box-shadow: 0 2px 4px 0 rgba(3,199,90,0.12); /* 포커스 시 은은한 초록 빛 */}
 .search-bar input { border: none; outline: none; width: 100%; font-size: 19px; font-weight: bold; }
 .search-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #03c75a; }
 
@@ -242,12 +245,119 @@ const fetchWeather = () => {
 .news-title-hover { font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* 로그인 박스 테두리 및 스타일 교정 */
-.login-card { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; }
+.login-card { background: #fff; border: 1px solid #ebebeb; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);}
 .login-guide { font-size: 12px; color: #666; margin-bottom: 15px; text-align: center; }
 .login-inputs { margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
 .login-inputs input { width: 100%; height: 38px; border: 1px solid #dadada; padding: 0 10px; box-sizing: border-box; font-size: 14px; border-radius: 4px; }
 .btn-naver-login { width: 100%; height: 50px; background: #03c75a; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; }
 .login-footer { margin-top: 15px; font-size: 12px; color: #888; text-align: center; }
+.login-footer span { cursor: pointer; transition: all 0.2s ease; position: relative; color: #888; }
+.login-footer span:hover { color: #555; text-decoration: underline; }
+.join-link:hover { color: #03c75a !important; font-weight: bold; }
+.login-after {padding: 5px; background: #fff;}
+.profile-top { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.avater-wrapper { position: relative; }
+.avatar-circle {
+  width: 56px;
+  height: 56px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.icon-setting {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 이름 스타일: 네이버 시그니처 폰트 느낌 */
+.user-name {
+  font-size: 16px;
+  font-weight: 800; /* 아주 두껍게 */
+  color: #000;
+  letter-spacing: -0.5px;
+}
+
+.user-id {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.badge-plus {
+  font-size: 10px;
+  background: #03c75a;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+}
+
+/* 활동 수치 영역: 네이버 실무 UI 스타일 */
+.profile-actions {
+  display: flex;
+  border-top: 1px solid #f2f2f2;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 12px 0;
+  margin-bottom: 15px;
+}
+
+.action-item {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+  border-right: 1px solid #f2f2f2;
+}
+
+.action-item:last-child { border-right: none; }
+
+.action-item strong {
+  color: #03c75a; /* 강조 숫자는 초록색으로! */
+  font-family: 'Apple SD Gothic Neo', sans-serif; /* 폰트 디테일 */
+}
+
+/* 로그아웃 버튼: 네이버 기본 버튼 스타일 */
+.btn-logout-naver {
+  width: 100%;
+  height: 34px;
+  background: #fff;
+  border: 1px solid #d1d3d6;
+  color: #666;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-logout-naver:hover {
+  background: #f8f9fa;
+}
 
 .weather-box { background: #fff; border: 1px solid #dadada; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; }
 .weather-inner { display: flex; align-items: center; gap: 15px; }

@@ -25,4 +25,25 @@ public class UserService {
         userMapper.insertAccount(userDto);
         userMapper.insertProfile(userDto);
     }
+
+    public String getUserIdByInfo(String info) {
+        String result = userMapper.selectById(info);
+        if (result == null) return "";
+        return result;
+
+    }
+
+    public String verifyId(String userId) {
+        int count = userMapper.checkUserExists(userId);
+        return count > 0 ? "exist" : "not_found";
+    }
+
+    @Transactional  // 보안 작업에는 트랜잭션 필수
+    public String updatePassword(String userId, String newPw) {
+
+        String encodedPassword = passwordEncoder.encode(newPw);
+
+        int result = userMapper.updatePassword(userId, encodedPassword);
+        return result > 0 ? "success" : "fail";
+    }
 }
