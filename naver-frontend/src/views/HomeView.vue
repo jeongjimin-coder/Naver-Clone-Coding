@@ -4,9 +4,29 @@
       <div class="header-inner">
         <div class="search-section">
           <h1 class="main-logo" @click="$router.push('/')">NAVER</h1>
-          <div class="search-bar">
-            <input type="text" v-model="searchQuery" placeholder="검색어를 입력해 주세요.">
-            <button class="search-btn">🔍</button>
+
+          <div class="search-bar-container">
+            <div class="search-bar">
+              <input
+                      type="text"
+                      v-model="searchQuery"
+                      @focus="isSearchHistoryOpen = true"
+                      @blur="setTimeout(() => isSearchHistoryOpen = false, 200)"
+                      @keyup.enter="handleSearch"
+                      placeholder="검색어를 입력해 주세요."
+              >
+              <button class="search-btn" @click="handleSearch">🔍</button>
+            </div>
+
+            <div class="recent-search-layer" v-if="isSearchHistoryOpen && recentSearches.length > 0">
+              <div class="layer-header">최근 검색어</div>
+              <ul class="search-list">
+                <li v-for="(word, idx) in recentSearches" :key="idx" @mousedown="handleRecentClick(word)">
+                  <span>{{ word }}</span>
+                  <button class="btn-delete" @click.stop="deleteSearch(idx)">✕</button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -31,22 +51,22 @@
 
         <section class="news-stand">
           <div class="news-tab">
-          <span v-for="tab in ['뉴스스탠드', '언론사편집', '엔터', '쇼핑투데이', '스포츠', '경제']"
-            :key="tab"
-            :class="{ active: selectedCategory === tab }"
-            @click="selectedCategory = tab"
-          >
-          {{ tab }}
-           </span>
+            <span v-for="tab in ['뉴스스탠드', '언론사편집', '엔터', '쇼핑투데이', '스포츠', '경제']"
+                  :key="tab"
+                  :class="{ active: selectedCategory === tab }"
+                  @click="selectedCategory = tab"
+            >
+              {{ tab }}
+            </span>
           </div>
 
           <div class="news-grid">
-            <div v-for="(news, index) in newsList" :key="index" class="news-item" @click="goToSearch(news.TITLE)">
+            <div v-for="(news, index) in filterNewsList" :key="index" class="news-item" @click="goToSearch(news.TITLE)">
               <div class="press-logo-box">
                 <span class="press-name">{{ news.PRESS_NAME }}</span>
                 <p class="news-title-hover">{{ news.TITLE }}</p>
+              </div>
             </div>
-          </div>
           </div>
         </section>
       </div>
@@ -57,7 +77,7 @@
             <p class="login-guide">네이버를 더 안전하고 편리하게 이용하세요</p>
             <div class="login-inputs">
               <input v-model="loginId" type="text" placeholder="아이디" class="input-id">
-              <input v-model="loginPw" type="password" placeholder="비밀번호" class="input-pw">
+              <input v-model="loginPw" type="password" placeholder="비밀번호" class="input-pw" @keyup.enter="handleLogin">
             </div>
             <button @click="handleLogin" class="btn-naver-login">NAVER 로그인</button>
             <div class="login-footer">
@@ -77,10 +97,13 @@
           </div>
         </div>
 
-        <div class="side-ad">
-          <div class="ad-content">
-            <p class="ad-title">추운 날씨에 혼자 남겨졌던 지후</p>
-            <button class="btn-more">더 알아보기 ></button>
+        <div class="weather-box">
+          <div class="weather-inner" v-if="weatherData.icon">
+            <img :src="`https://openweathermap.org/img/wn/${weatherData.icon}@2x.png`" alt="날씨">
+            <div class="weather-info">
+              <span class="current-temp">{{ weatherData.temp }}°</span>
+              <span class="weather-desc">{{ weatherData.description }}</span>
+            </div>
           </div>
         </div>
       </aside>
@@ -92,34 +115,62 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
+// 상태 관리 변수
+const recentSearches = ref([]);
+const isSearchHistoryOpen = ref(false);
+const searchQuery = ref('');
 const isLoggedIn = ref(false);
 const loginUser = ref(null);
 const loginId = ref('');
 const loginPw = ref('');
-const searchQuery = ref('');
 const newsList = ref([]);
 const selectedCategory = ref('뉴스스탠드');
+const weatherData = ref({ temp: 0, description: '', icon: '' });
 
-// 세션 체크 (새로고침 유지)
 onMounted(async () => {
+  // 세션 및 데이터 로드
   try {
     const res = await axios.get('/api/user/session');
-    if (res.data) {
-      isLoggedIn.value = true;
-      loginUser.value = res.data;
-    }
+    if (res.data) { isLoggedIn.value = true; loginUser.value = res.data; }
   } catch (e) { console.error("세션 없음"); }
+
+  const saved = localStorage.getItem('naver_recent_searches');
+  if (saved) { recentSearches.value = JSON.parse(saved); }
+
   try {
     const res = await axios.get('/api/news/list');
     newsList.value = res.data;
-    console.log("뉴스 데이터: ", res.data);
-    } catch (e) { console.error("뉴스 로딩 실패"); }
+  } catch (e) { console.error("뉴스 로딩 실패"); }
+
+  fetchWeather();
 });
+
+// 공통 검색 실행 로직 (중복 제거)
+const performSearch = (keyword) => {
+  if (!keyword.trim()) { alert("검색어를 입력해 주세요!"); return; }
+
+  // 검색어 배열 가공 (중복 제거 후 맨 위로)
+  const updated = [keyword, ...recentSearches.value.filter(s => s !== keyword)];
+  recentSearches.value = updated.slice(0, 5);
+  localStorage.setItem('naver_recent_searches', JSON.stringify(recentSearches.value));
+
+  // 상태 정리 및 이동
+  searchQuery.value = keyword;
+  isSearchHistoryOpen.value = false;
+  window.location.href = `https://search.naver.com/search.naver?query=${encodeURIComponent(keyword)}`;
+};
+
+const handleSearch = () => performSearch(searchQuery.value);
+const handleRecentClick = (word) => performSearch(word);
+
+const deleteSearch = (idx) => {
+  recentSearches.value.splice(idx, 1);
+  localStorage.setItem('naver_recent_searches', JSON.stringify(recentSearches.value));
+};
 
 const goToSearch = (title) => {
   if (!title) return;
-  const searchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(title)}`;
-  window.open(searchUrl, '_blank'); // 새 탭으로 열기
+  window.open(`https://search.naver.com/search.naver?query=${encodeURIComponent(title)}`, '_blank');
 };
 
 const filterNewsList = computed(() => {
@@ -128,22 +179,21 @@ const filterNewsList = computed(() => {
 });
 
 const handleLogin = async () => {
-  if (!loginId.value || !loginPw.value) { alert("입력해주세요!"); return; }
+  if (!loginId.value || !loginPw.value) { alert("아이디와 비밀번호를 입력해주세요."); return; }
   try {
     const res = await axios.post('/api/user/login', { userId: loginId.value, userPw: loginPw.value });
-    if (res.data) {
-      isLoggedIn.value = true;
-      loginUser.value = res.data;
-    } else { alert("정보가 틀립니다."); }
+    if (res.data) { isLoggedIn.value = true; loginUser.value = res.data; }
+    else { alert("로그인 정보가 틀립니다."); }
   } catch (e) { console.error("로그인 실패"); }
 };
 
 const handleLogout = async () => {
   await axios.post('/api/user/logout');
-  isLoggedIn.value = false;
-  loginUser.value = null;
-  loginId.value = '';
-  loginPw.value = '';
+  isLoggedIn.value = false; loginUser.value = null; loginId.value = ''; loginPw.value = '';
+};
+
+const fetchWeather = () => {
+  weatherData.value = { temp: 5, description: '맑음', icon: '01d' };
 };
 </script>
 
@@ -151,54 +201,57 @@ const handleLogout = async () => {
 .naver-container { background-color: #f5f6f7; min-height: 100vh; color: #202020; }
 .header-inner { background: #fff; padding: 40px 0 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid #ebebeb; }
 
-/* 검색창 디자인 (올려주신 이미지의 둥근 형태) */
 .search-section { display: flex; align-items: center; width: 1130px; gap: 25px; margin-bottom: 30px; }
-.main-logo { color: #03c75a; font-size: 38px; font-weight: 900; cursor: pointer; letter-spacing: -1px; }
-.search-bar { flex: 1; max-width: 600px; height: 58px; border: 2px solid #03c75a; border-radius: 30px; display: flex; align-items: center; padding: 0 20px; }
+.main-logo { color: #03c75a; font-size: 38px; font-weight: 900; cursor: pointer; letter-spacing: -1px; margin: 0; }
+
+.search-bar-container { position: relative; width: 600px; }
+.search-bar { height: 58px; border: 2px solid #03c75a; border-radius: 30px; display: flex; align-items: center; padding: 0 20px; background: #fff; }
 .search-bar input { border: none; outline: none; width: 100%; font-size: 19px; font-weight: bold; }
 .search-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #03c75a; }
 
-/* 서비스 메뉴 아이콘 */
+.recent-search-layer {
+  position: absolute; top: 62px; left: 0; width: 100%; background: #fff;
+  border: 1px solid #dadada; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 1000; padding: 15px 0;
+}
+.layer-header { padding: 0 20px 10px; font-size: 12px; color: #888; border-bottom: 1px solid #f5f5f5; text-align: left; }
+.search-list { list-style: none; padding: 0; margin: 0; }
+.search-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 14px; text-align: left;}
+.search-list li:hover { background-color: #f8f9fa; }
+.btn-delete { background: none; border: none; color: #ccc; cursor: pointer; }
+
 .service-nav { display: flex; gap: 35px; }
 .menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
 .icon-circle { width: 44px; height: 44px; border-radius: 50%; background-color: #f4f7f8; }
 
-/* 메인 레이아웃 */
-.naver-content { display: flex; width: 1130px; margin: 20px auto; gap: 20px; }
+.naver-content { display: flex; width: 1130px; margin: 20px auto; gap: 20px; align-items: flex-start; }
 .left-side { width: 750px; }
-.right-side { width: 350px; }
+.right-side { width: 350px; display: flex; flex-direction: column; gap: 15px; }
 
-/* 배너 및 뉴스스탠드 */
-.banner-ad { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+/* 광고 박스 디자인 복구 */
+.banner-ad { background: #fff; border: 1px solid #dadada; padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-weight: bold; font-size: 14px; cursor: pointer; }
+
 .news-stand { background: #fff; border: 1px solid #dadada; border-radius: 8px; overflow: hidden; }
 .news-tab { padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 20px; font-size: 14px; font-weight: bold; color: #666; }
-.news-tab .active { color: #000; border-bottom: 2px solid #000; }
-.news-grid { display: grid; grid-template-columns: repeat(3, 1fr);  border-top: 1px solid #f0f0f0;}
-.news-item { height: 80px; padding: 15px; border-right: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999; transition: background-color 0.2s; cursor: pointer; transition: all 0.2 ease; }
+.news-tab span { cursor: pointer; padding-bottom: 5px; border-bottom: 2px solid transparent; }
+.news-tab span.active { color: #000; border-bottom: 2px solid #000; }
+
+.news-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #f0f0f0; }
+.news-item { height: 80px; padding: 15px; border-right: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; cursor: pointer; }
 .news-item:hover { background-color: #f8f9fa; box-shadow: inset 0 0 0 1px #03c75a; }
-.press-name { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
-.news-title-hover { font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-anchor: middle; text-overflow: ellipsis; }
-.news-title-hover:hover { text-decoration: underline; }
+.press-name { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; display: block; }
+.news-title-hover { font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-
-/* 로그인 박스 */
-.login-card { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; margin-bottom: 15px; }
-.login-guide { font-size: 13px; color: #666; margin-bottom: 15px; text-align: center; }
-.login-inputs { margin-bottom: 10px; }
-.login-inputs input { width: 100%; height: 35px; border: 1px solid #ddd; margin-bottom: 5px; padding: 5px; box-sizing: border-box; }
-.btn-naver-login { width: 100%; height: 50px; background: #03c75a; color: #fff; border: none; border-radius: 4px; font-weight: bold; font-size: 16px; cursor: pointer; }
+/* 로그인 박스 테두리 및 스타일 교정 */
+.login-card { background: #fff; border: 1px solid #dadada; padding: 25px; border-radius: 8px; }
+.login-guide { font-size: 12px; color: #666; margin-bottom: 15px; text-align: center; }
+.login-inputs { margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
+.login-inputs input { width: 100%; height: 38px; border: 1px solid #dadada; padding: 0 10px; box-sizing: border-box; font-size: 14px; border-radius: 4px; }
+.btn-naver-login { width: 100%; height: 50px; background: #03c75a; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; }
 .login-footer { margin-top: 15px; font-size: 12px; color: #888; text-align: center; }
-.join-link { color: #03c75a; font-weight: bold; cursor: pointer; }
 
-/* 로그인 후 프로필 */
-.profile-area { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-.avatar-circle { width: 50px; height: 50px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-.user-name { margin: 0; font-size: 15px; }
-.user-email { margin: 0; font-size: 12px; color: #888; }
-.btn-logout { width: 100%; padding: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; border-radius: 4px; }
-
-/* 사이드 캠페인 */
-.side-ad { background: #fff; border: 1px solid #dadada; border-radius: 8px; height: 200px; padding: 20px; }
-.ad-title { font-weight: bold; margin-bottom: 10px; }
-.btn-more { border: none; background: none; color: #888; cursor: pointer; font-size: 12px; }
+.weather-box { background: #fff; border: 1px solid #dadada; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; }
+.weather-inner { display: flex; align-items: center; gap: 15px; }
+.weather-inner img { width: 45px; height: 45px; background-color: #f4f7f8; border-radius: 50%; }
+.current-temp { font-size: 22px; font-weight: bold; color: #03c75a; }
+.weather-desc { font-size: 13px; color: #666; }
 </style>
