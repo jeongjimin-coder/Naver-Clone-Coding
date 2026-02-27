@@ -19,7 +19,7 @@
                 >
             </div>
 
-            <div class="find-options">
+            <div class="btn-area">
                 <button class="btn-next" @click="handleNext">다음</button>
             </div>
             </div>
@@ -29,7 +29,9 @@
                 <div class="id-result-box">
                     <strong class="highlight-id">{{ foundId }}</strong>
                 </div>
+                <div class="btn-area">
                 <button class="btn-next" @click="$router.push('/')">로그인하러 가기</button>
+                </div>
             </div>
 
             <div class="find-footer-links">
@@ -150,6 +152,12 @@ const handleNext = async () => {
 }
 
 .btn-next:hover { background: #02b350; }
+
+.btn-area {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬의 핵심! */
+    width: 100%;
+}
 
 .id-result-box {
   background: #333;

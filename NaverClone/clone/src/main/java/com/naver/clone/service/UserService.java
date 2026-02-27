@@ -46,4 +46,14 @@ public class UserService {
         int result = userMapper.updatePassword(userId, encodedPassword);
         return result > 0 ? "success" : "fail";
     }
+
+    public boolean isUserIdExist(String userId) {
+        int ret = userMapper.isUserIdExist(userId);
+        System.out.println(ret);
+        boolean isExist;
+        if (ret > 0) {
+            isExist = true;
+        } else isExist = false;
+        return isExist;
+    }
 }

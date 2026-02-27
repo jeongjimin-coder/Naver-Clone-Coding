@@ -94,6 +94,12 @@ public class UserController {
         return userService.getUserIdByInfo(userInfo);
     }
 
+    @GetMapping("/check-id")
+    public String checkId(@RequestParam("userId") String userId) {
+        boolean isExist = userService.isUserIdExist(userId);
+        return isExist ? "duplicate" : "available";
+    }
+
     @PostMapping("/verify-send")
     public String sendVerifyCode(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String phone = request.get("phone");

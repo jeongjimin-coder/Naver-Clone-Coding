@@ -18,7 +18,7 @@
                     >
                 </div>
 
-                <div class="find-options">
+                <div class="btn-area">
                     <button class="btn-next" @click="verifyUser">다음</button>
                 </div>
             </div>
@@ -47,8 +47,12 @@
                             class="dark-input"
                     >
                 </div>
+                <p v-if="pwConfirm && !isPwMatched" class="error-msg">
+                    비밀번호가 일치하지 않습니다.
+                </p>
+                <div class="btn-area">
                 <button class="btn-next" @click="resetPassword">비밀번호 변경</button>
-
+                </div>
             </div>
 
             <div class="find-footer-links">
@@ -62,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -96,10 +100,6 @@ const verifyUser = async () => {
 };
 
 const resetPassword = async () => {
-    if (newPassword.value !== pwConfirm.value) {
-        alert("비밀번호가 일치하지 않습니다.");
-    }
-
     try {
         const res = await axios.post('/api/user/reset-pw', {
             userId: userId.value,
@@ -114,6 +114,10 @@ const resetPassword = async () => {
         alert("변경 중 오류가 발생하였습니다.");
     }
 };
+
+const isPwMatched = computed(() => {
+    return newPassword.value === pwConfirm.value;
+});
 
 </script>
 
@@ -158,6 +162,8 @@ const resetPassword = async () => {
 /* 입력창 포커스 효과 디테일 */
 .input-group {
   border: 1px solid #444;
+  font-size: 12px;
+  margin-top: 0;
   border-radius: 8px;
   padding: 18px;
   margin-bottom: 35px;
@@ -178,11 +184,18 @@ const resetPassword = async () => {
 }
 
 /* 옵션 및 버튼 */
-.find-options { display: flex; justify-content: space-between; align-items: center; }
 .auth-link { color: #fff; text-decoration: underline; font-size: 14px; cursor: pointer; opacity: 0.8; }
 .auth-link:hover { opacity: 1; }
 
+.btn-area {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬의 핵심! */
+    width: 100%;
+}
+
 .btn-next {
+  display: flex;
+  justify-content: flex-end;
   background: #03c75a;
   color: #fff;
   border: none;
@@ -215,4 +228,13 @@ const resetPassword = async () => {
 .find-footer-links { margin-top: 120px; border-top: 1px dotted #333; padding-top: 25px; text-align: left; }
 .bottom-link { font-size: 13px; color: #666; text-decoration: underline; cursor: pointer; }
 .lang-select { margin-top: 40px; color: #555; font-size: 13px; cursor: pointer; }
+
+.error-msg {
+    color: #ff5a5a;    /* 네이버에서 주로 쓰는 경고용 빨간색 */
+    font-size: 12px;
+    margin-bottom: 20px;
+    text-align: left;
+    padding-left: 5px;
+    display: block;    /* 확실하게 한 줄을 차지하도록 함 */
+}
 </style>
