@@ -11,8 +11,16 @@ export default defineConfig({
         target: 'http://localhost:9090', // 내 백엔드 주소 (Context Path 포함)
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: "localhost",
         rewrite: (path) => path.replace(/^\/api/, '/naver/api')
+      },
+      '/mail': {
+        target: 'http://localhost:9090',
+        changeOrigin: true,
+        cookieDomainRewrite: "localhost",
+        rewrite: (path) => path.replace(/^\/mail/, '/naver/mail')
       }
+
     }
   }
 })

@@ -37,19 +37,19 @@ public class UserController {
         if (user != null && passwordEncoder.matches(loginRequest.getUserPw(), user.getUserPw())) {
             // 2. 세션 생성 및 정보 저장
             HttpSession session = request.getSession(); // 세션 가져오기 (없으면 생성)
-            session.setAttribute("LoginUser", user); // 세션에 "LoginUser" 라는 이름으로 유저 객체 생성
+            session.setAttribute("loginUser", user); // 세션에 "LoginUser" 라는 이름으로 유저 객체 생성
             session.setMaxInactiveInterval(30 * 60); // 30분간 유지
             return user;
         }
         return null;
     }
 
-    @GetMapping
+    @GetMapping("/session")
     public UserDto checkSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false); // 세션이 없으면 새로 만들지 마라
 
         if (session != null) {
-            return (UserDto) session.getAttribute("LoginUser"); // 저장된 유저 정보 반환
+            return (UserDto) session.getAttribute("loginUser"); // 저장된 유저 정보 반환
         }
         return null;
     }

@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import JoinView from '../views/JoinView.vue'
 import FindIdView from '../views/FindIdView.vue'
 import FindPwView from '../views/FindPwView.vue'
+import MailView from '../views/MailView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -26,6 +27,11 @@ const router = createRouter({
         path: '/find-pw',
         name: 'find-pw',
         component: FindPwView
+    },
+    {
+        path: '/mail',
+        name: 'mail',
+        component: MailView
     }
   ]
 })

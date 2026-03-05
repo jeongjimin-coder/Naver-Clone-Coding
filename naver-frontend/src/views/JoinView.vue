@@ -49,9 +49,16 @@
             <input v-model="joinData.userName" type="text" placeholder="이름" class="join-input">
           </div>
         </div>
-        <div class="join-row">
+        <div class="join-row" :class="{ 'is-focused': focusField === 'birth'}">
           <div class="input-box icon-birth">
-            <input v-model="joinData.birth" type="text" placeholder="생년월일 8자리 (예: 19980101)" class="join-input">
+            <input v-model="joinData.birth"
+                   type="text"
+                   maxlength="10"
+                   placeholder="생년월일 8자리 (예: 19980101)"
+                   class="join-input"
+                   @focus="focusField = 'birth'; removeFormat()"
+                   @blur="focusField = ''; formatBirth()"
+            >
           </div>
         </div>
         <div class="join-row">
@@ -111,6 +118,7 @@ const idMessage = ref('');
 const isIdAvailable = ref(false);
 const isVerified = ref(false);
 const isPwVisible = ref(false);
+const focusField = ref('');
 
 
 
@@ -147,6 +155,17 @@ const checkIdDuplication = async () => {
     console.error("진짜 에러: " + e);
     idMessage.value = "통신 오류가 발생했습니다.";
   }
+};
+
+const formatBirth = () => {
+  const value = joinData.value.birth.replace(/[^0-9]/g, '');
+  if (value.length === 8) {
+    joinData.value.birth = value.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
+    }
+};
+
+const removeFormat = () => {
+  joinData.value.birth = joinData.value.birth.replace(/\./g, '');
 };
 
 // 2. 인증번호 발송 및 타이머 로직
